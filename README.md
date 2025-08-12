@@ -1,2 +1,2 @@
 # Tabata_timer
-My project for course and for my wife
+My project for course on SoftServe academy
