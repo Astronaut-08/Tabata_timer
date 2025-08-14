@@ -2,16 +2,11 @@
 and main User GIU write on the Tkinter library'''
 import time
 import threading
-import preset
-
-user_preset = preset.select_records_by_name('First')
 
 class Timer:
     '''This is timer, we gonna use him tabata timer label'''
-    def __init__(self, callback):
-        self.second = ((user_preset.work * user_preset.exercises) + (user_preset.rest *\
-        (user_preset.exercises - 1)))* user_preset.rouds + (user_preset.rounds_reset *\
-        (user_preset.rouds - 1))
+    def __init__(self, second, callback):
+        self.second = second
         self._callback = callback
         self.interval = 1
         self._thread = None
