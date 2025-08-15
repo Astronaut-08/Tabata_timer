@@ -1,0 +1,16 @@
+# Python кеш
+__pycache__/
+*.pyc
+*.pyo
+
+# База даних
+presets.db
+
+# Зайвий файл
+ruler.py
+
+# Віртуальне середовище
+venv/
+
+# Логи
+*.log
