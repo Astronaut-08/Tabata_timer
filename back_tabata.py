@@ -11,6 +11,8 @@ class Timer:
         self.interval = 1
         self._thread = None
         self._stop = threading.Event()
+        self._paused = threading.Event()
+        self._paused.clear()
 
     def start(self):
         '''Starting the timer'''
@@ -20,9 +22,18 @@ class Timer:
         self._thread = threading.Thread(target=self._run)
         self._thread.start()
 
+    def pause(self):
+        '''Pausing the timer'''
+        self._paused.set()
+
+    def resume(self):
+        '''Resuming the timer'''
+        self._paused.clear()
+
     def stop(self):
         '''stoping the timer'''
         self._stop.set()
+        self._paused.clear()
 
     def is_runnig(self):
         '''Check timer on work'''
@@ -32,6 +43,9 @@ class Timer:
         '''working login of the timer'''
         remaining = self.second
         while remaining >= 0 and not self._stop.is_set():
+            if self._paused.is_set():
+                time.sleep(0.1)
+                continue
             self._callback(remaining)
             time.sleep(self.interval)
             remaining -=1

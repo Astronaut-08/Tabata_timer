@@ -16,6 +16,12 @@ class App:
         self.work_menu = tk.Frame(self.window)
         # Timer
         self.mt = Timer()
+        self.rt = Timer()
+        self.rr = Timer()
+        self.wt = Timer()
+        self.exer_reset = None
+        self.exer = None
+        self.rou = None
         # StringVars
         self.svar_work = tk.StringVar()
         self.svar_rest = tk.StringVar()
@@ -50,12 +56,14 @@ class App:
         self.label_wtimer = tk.Label(self.work_menu, font=('Times', 36), justify='center',\
                                      fg='blue')
         self.label_status = tk.Label(self.work_menu, font=('Times', 36), justify='center',\
-                                     text='Work', fg='blue')
+                                     fg='blue')
         self.label_progres = tk.Label(self.work_menu, font=('Times', 36), justify='center')
         self.button_stop = tk.Button(self.work_menu, bg='red',text='STOP', \
                                     font=('Times', 24), justify='center',\
                                     fg='white', command=self.stop_timer)
-        self.button_run_pause = tk.Button(self.work_menu)
+        self.button_run_pause = tk.Button(self.work_menu, bg='grey',text='PAUSE', \
+                                    font=('Times', 24), justify='center',\
+                                    fg='white', command=self.pause_timer)
         # Place at main menu
         self.label_timer.place(x=0, y=0, width=620, height=100)
         self.combobox_preset.place(x=10, y=110, width=600, height=30)
@@ -139,10 +147,52 @@ class App:
         self.label_timer.config(text=self.sum_for_timer())
         # Timer
         self.mt = Timer(self.sum_for_timer(), self.dmt)
+        self.exer_reset = result.exercises
+        self.exer = result.exercises
+        self.rou = result.rounds
 
     def dmt(self, r):
         '''update label main timer'''
         self.label_progres.config(text=f'Time remaining: {r//60:02}:{r%60:02}')
+
+    def dwt(self, r):
+        '''update label work timer'''
+        self.label_wtimer.config(text=f'{r//60:02}:{r%60:02}')
+        if r == 0 and self.exer > 1:
+            sv = int(self.combobox_preset.get())
+            result = preset.select_records_by_id(sv)
+            self.rt = Timer(result.rest, self.drt)
+            self.label_status.config(text='Rest')
+            self.rt.start()
+            self.exer -= 1
+        elif r == 0 and self.rou > 1:
+            sv = int(self.combobox_preset.get())
+            result = preset.select_records_by_id(sv)
+            self.rr = Timer(result.rounds_reset, self.drr)
+            self.label_status.config(text='Round reset')
+            self.rr.start()
+            self.rou -= 1
+            self.exer = self.exer_reset
+
+    def drt(self, r):
+        '''update label work timer'''
+        self.label_wtimer.config(text=f'{r//60:02}:{r%60:02}')
+        if r == 0:
+            sv = int(self.combobox_preset.get())
+            result = preset.select_records_by_id(sv)
+            self.wt = Timer(result.work, self.dwt)
+            self.label_status.config(text='Work')
+            self.wt.start()
+
+    def drr(self, r):
+        '''update label work timer'''
+        self.label_wtimer.config(text=f'{r//60:02}:{r%60:02}')
+        if r == 0:
+            sv = int(self.combobox_preset.get())
+            result = preset.select_records_by_id(sv)
+            self.wt = Timer(result.work, self.dwt)
+            self.label_status.config(text='Work')
+            self.wt.start()
 
     def start_timer(self):
         '''Start work'''
@@ -151,13 +201,36 @@ class App:
             sv = int(self.combobox_preset.get())
             result = preset.select_records_by_id(sv)
             self.mt.start()
-            exer = result.exercises
-            rou = result.rounds
+            self.wt = Timer(result.work, self.dwt)
+            self.label_status.config(text='Work')
+            self.wt.start()
         else:
             print('Select the user pls')
 
+    def pause_timer(self):
+        '''Paused all timer'''
+        self.mt.pause()
+        self.wt.pause()
+        self.rr.pause()
+        self.rt.pause()
+        self.button_run_pause.config(text='REMAIN', bg='green',\
+                                     command=self.resume_timer)
+
+    def resume_timer(self):
+        '''Resume all timer'''
+        self.mt.resume()
+        self.wt.resume()
+        self.rr.resume()
+        self.rt.resume()
+        self.button_run_pause.config(text='PAUSE', bg='grey',\
+                                     command=self.pause_timer)
+
     def stop_timer(self):
         '''Stop and return to main nemu'''
+        self.mt.stop()
+        self.wt.stop()
+        self.rr.stop()
+        self.rt.stop()
         self.switch_frame(self.main_menu)
 
 App(main)
