@@ -5,7 +5,7 @@ import threading
 
 class Timer:
     '''This is timer, we gonna use him tabata timer label'''
-    def __init__(self, second, callback):
+    def __init__(self, second=None, callback=None):
         self.second = second
         self._callback = callback
         self.interval = 1
