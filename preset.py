@@ -27,17 +27,20 @@ def add_records(work=1, rest=1, exercises=1, rounds=1, rounds_reset=1):
                         rounds=rounds, rounds_reset=rounds_reset)
     s.add(new_record)
     s.commit()
+    s.close()
 
 def select_all_id():
     '''Return all column of id'''
     s = Session()
-    res = s.query(Preset).all()
-    return [row[0] for row in res]
+    res = [i[0] for i in s.query(Preset.id).all()]
+    s.close()
+    return res
 
 def select_records_by_id(user_id):
     '''Select records by name and return, to use try: select_records_by_name.row_name'''
     s = Session()
     res = s.query(Preset).filter_by(id = user_id).first()
+    s.close()
     return res
 
 def delete_records_by_name(user_id):
@@ -46,3 +49,4 @@ def delete_records_by_name(user_id):
     delete_name = s.query(Preset).filter_by(id = user_id).first()
     s.delete(delete_name)
     s.commit()
+    s.close()
