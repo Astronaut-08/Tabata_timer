@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from back_tabata import Timer
 import preset
+import pygame
 
 main = tk.Tk()
 class App:
@@ -11,6 +12,7 @@ class App:
         self.window = window
         self.window.geometry('620x400')
         self.window.resizable(False, False)
+        pygame.mixer.init()
         # Frame
         self.main_menu = tk.Frame(self.window)
         self.work_menu = tk.Frame(self.window)
@@ -19,6 +21,7 @@ class App:
         self.rt = Timer()
         self.rr = Timer()
         self.wt = Timer()
+        self.prp = Timer()
         self.exer_reset = None
         self.exer = None
         self.rou = None
@@ -132,7 +135,8 @@ class App:
             result = ((r.work * r.exercises) + (r.rest * (r.exercises - 1)))\
             * r.rounds + (r.rounds_reset * (r.rounds - 1))
             return result
-        except AttributeError:
+        except (AttributeError, ValueError):
+            print('User dont selected')
             return 'TIMER'
 
     def on_select_preset(self, evt):
@@ -144,7 +148,8 @@ class App:
         self.svar_exercise.set(result.exercises)
         self.svar_round.set(result.rounds)
         self.svar_round_reset.set(result.rounds_reset)
-        self.label_timer.config(text=self.sum_for_timer())
+        r = self.sum_for_timer()
+        self.label_timer.config(text=f'Total time: {r//60:02}:{r%60:02}')
         # Timer
         self.mt = Timer(self.sum_for_timer(), self.dmt)
         self.exer_reset = result.exercises
@@ -155,55 +160,89 @@ class App:
         '''update label main timer'''
         self.label_progres.config(text=f'Time remaining: {r//60:02}:{r%60:02}')
 
+    def dprp(self, r):
+        '''Timer to prepare for work'''
+        self.label_wtimer.config(text=f'{r//60:02}:{r%60:02}')
+        if r <= 3:
+            pygame.mixer.music.load('sec.mp3')
+            pygame.mixer.music.play()
+            if r == 0:
+                pygame.mixer.music.load('switch.mp3')
+                pygame.mixer.music.play()
+                self.label_status.config(text='Work')
+                self.wt.start()
+                self.mt.start()
+
     def dwt(self, r):
         '''update label work timer'''
         self.label_wtimer.config(text=f'{r//60:02}:{r%60:02}')
-        if r == 0 and self.exer > 1:
-            sv = int(self.combobox_preset.get())
-            result = preset.select_records_by_id(sv)
-            self.rt = Timer(result.rest, self.drt)
-            self.label_status.config(text='Rest')
-            self.rt.start()
-            self.exer -= 1
-        elif r == 0 and self.rou > 1:
-            sv = int(self.combobox_preset.get())
-            result = preset.select_records_by_id(sv)
-            self.rr = Timer(result.rounds_reset, self.drr)
-            self.label_status.config(text='Round reset')
-            self.rr.start()
-            self.rou -= 1
-            self.exer = self.exer_reset
+        if r <= 3:
+            pygame.mixer.music.load('sec.mp3')
+            pygame.mixer.music.play()
+            if r == 0 and self.exer > 1:
+                pygame.mixer.music.load('switch.mp3')
+                pygame.mixer.music.play()
+                sv = int(self.combobox_preset.get())
+                result = preset.select_records_by_id(sv)
+                self.rt = Timer(result.rest, self.drt)
+                self.label_status.config(text='Rest')
+                self.rt.start()
+                self.exer -= 1
+            elif r == 0 and self.rou > 1:
+                pygame.mixer.music.load('switch.mp3')
+                pygame.mixer.music.play()
+                sv = int(self.combobox_preset.get())
+                result = preset.select_records_by_id(sv)
+                self.rr = Timer(result.rounds_reset, self.drr)
+                self.label_status.config(text='Round reset')
+                self.rr.start()
+                self.rou -= 1
+                self.exer = self.exer_reset
+            elif r == 0:
+                pygame.mixer.music.load('switch.mp3')
+                pygame.mixer.music.play()
+                self.window.after(1000, self.switch_frame(self.main_menu))
 
     def drt(self, r):
         '''update label work timer'''
         self.label_wtimer.config(text=f'{r//60:02}:{r%60:02}')
-        if r == 0:
-            sv = int(self.combobox_preset.get())
-            result = preset.select_records_by_id(sv)
-            self.wt = Timer(result.work, self.dwt)
-            self.label_status.config(text='Work')
-            self.wt.start()
+        if r <= 3:
+            pygame.mixer.music.load('sec.mp3')
+            pygame.mixer.music.play()
+            if r == 0:
+                pygame.mixer.music.load('switch.mp3')
+                pygame.mixer.music.play()
+                sv = int(self.combobox_preset.get())
+                result = preset.select_records_by_id(sv)
+                self.wt = Timer(result.work, self.dwt)
+                self.label_status.config(text='Work')
+                self.wt.start()
 
     def drr(self, r):
         '''update label work timer'''
         self.label_wtimer.config(text=f'{r//60:02}:{r%60:02}')
-        if r == 0:
-            sv = int(self.combobox_preset.get())
-            result = preset.select_records_by_id(sv)
-            self.wt = Timer(result.work, self.dwt)
-            self.label_status.config(text='Work')
-            self.wt.start()
+        if r <= 3:
+            pygame.mixer.music.load('sec.mp3')
+            pygame.mixer.music.play()
+            if r == 0:
+                pygame.mixer.music.load('switch.mp3')
+                pygame.mixer.music.play()
+                sv = int(self.combobox_preset.get())
+                result = preset.select_records_by_id(sv)
+                self.wt = Timer(result.work, self.dwt)
+                self.label_status.config(text='Work')
+                self.wt.start()
 
     def start_timer(self):
         '''Start work'''
-        if self.sum_for_timer():
+        if self.combobox_preset.get():
             self.switch_frame(self.work_menu)
             sv = int(self.combobox_preset.get())
             result = preset.select_records_by_id(sv)
-            self.mt.start()
             self.wt = Timer(result.work, self.dwt)
-            self.label_status.config(text='Work')
-            self.wt.start()
+            self.prp = Timer(10, self.dprp)
+            self.label_status.config(text='Prepare')
+            self.prp.start()
         else:
             print('Select the user pls')
 
@@ -213,6 +252,7 @@ class App:
         self.wt.pause()
         self.rr.pause()
         self.rt.pause()
+        self.prp.pause()
         self.button_run_pause.config(text='REMAIN', bg='green',\
                                      command=self.resume_timer)
 
@@ -222,6 +262,7 @@ class App:
         self.wt.resume()
         self.rr.resume()
         self.rt.resume()
+        self.prp.resume()
         self.button_run_pause.config(text='PAUSE', bg='grey',\
                                      command=self.pause_timer)
 
@@ -231,6 +272,7 @@ class App:
         self.wt.stop()
         self.rr.stop()
         self.rt.stop()
+        self.prp.stop()
         self.switch_frame(self.main_menu)
 
 App(main)
